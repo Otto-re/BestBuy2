@@ -41,13 +41,14 @@ def test_non_stocked_product():
 def test_limited_product():
     product = LimitedProduct("Shipping Fee", price=10, quantity=250, maximum=1)
     assert product.buy(1) == 10
+    assert product.get_quantity() == 249  # Überprüfung, dass die Menge korrekt reduziert wurde
     with pytest.raises(ValueError):
         product.buy(2)
     assert product.show() == "Shipping Fee, Price: 10, Quantity: 249, Max allowed: 1"
 
 def test_percent_discount():
     product = Product("Test Product", price=100, quantity=10)
-    promo = PercentDiscount("20% off", percent=20)
+    promo = PercentDiscount("20% off", discount_percent=20)
     product.set_promotion(promo)
     # Kauf von 2 Artikeln: Normalpreis 200, 20% Rabatt = 40 Rabatt, Gesamt = 160
     assert product.buy(2) == 160
@@ -66,3 +67,6 @@ def test_third_one_free():
     # Kauf von 3 Artikeln: Preis = 2 x 100 = 200
     assert product.buy(3) == 200
 
+def test_no_promotion_when_none_set():
+    product = Product("Test Product", price=100, quantity=10)
+    assert product.buy(2) == 200  # Kein Rabatt, Normalpreis für 2 Artikel

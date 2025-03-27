@@ -1,16 +1,16 @@
-import products
-import store
-import promotions
-1
+from store import Store
+from products import Product, NonStockedProduct, LimitedProduct
+from promotions import PercentDiscount, SecondHalfPrice, ThirdOneFree
+
 product_list = [
-    products.Product("MacBook Air M2", price=1450, quantity=100),
-    products.Product("Bose QuietComfort Earbuds", price=250, quantity=500),
-    products.Product("Google Pixel 7", price=500, quantity=250),
-    products.NonStockedProduct("Windows License", price=125),
-    products.LimitedProduct("Shipping", price=10, quantity=250, maximum=1)
+    Product("MacBook Air M2", price=1450, quantity=100, promotion=SecondHalfPrice(name="Second Half Price")),
+    Product("Bose QuietComfort Earbuds", price=250, quantity=500, promotion=ThirdOneFree(name="Buy 2 get 1 free")),
+    Product("Google Pixel 7", price=500, quantity=250),
+    NonStockedProduct("Windows License", price=125, promotion=PercentDiscount("30% off", discount_percent=30)),
+    LimitedProduct("Shipping", price=10, quantity=250, maximum=1, promotion=None)
 ]
 
-best_buy = store.Store(product_list)
+best_buy = Store(product_list)
 
 def start(store):
     while True:
@@ -22,10 +22,14 @@ def start(store):
         print("4. Quit")
 
         chose = input("Please choose a number:")
+        print("------")
 
         if chose == "1":
+            idx = 1
+            # Indiziere die Produkte ab 1 korrekt
             for product in store.get_all_products():
-                print(product.show())
+                print(f"{idx}. {product.show()}")
+                idx += 1
 
         elif chose == "2":
             print(f"Total quantity in store: {store.get_total_quantity()}")

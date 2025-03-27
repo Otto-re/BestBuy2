@@ -1,41 +1,42 @@
 from abc import ABC, abstractmethod
 
-# Abstrakte Klasse für Promotionen
 class Promotion(ABC):
-    def __init__(self, name: str):
-        self.name = name  # Der Name der Promotion, z.B. "30% off", "Buy 2, get 1 free"
+    def __init__(self, name):
+        self.name = name
 
     @abstractmethod
-    def apply_promotion(self, product, quantity: int) -> float:
-        # Diese Methode muss in jeder spezifischen Promotion-Klasse implementiert werden
+    def apply_promotion(self, product, quantity):
+        """Berechnet den Rabatt oder die Promotion für ein Produkt"""
         pass
 
-# Prozentualer Rabatt
 class PercentDiscount(Promotion):
-    def __init__(self, name: str, percent: float):
+    def __init__(self, name, discount_percent):
         super().__init__(name)
-        self.percent = percent  # Der Prozentsatz des Rabatts
+        self.discount_percent = discount_percent
 
-    def apply_promotion(self, product, quantity: int) -> float:
-        # Berechne den Gesamtpreis vor Rabatt
+    def apply_promotion(self, product, quantity):
         total_price = product.price * quantity
-        # Berechne den Rabatt
-        discount = total_price * (self.percent / 100)
-        return total_price - discount  # Gesamtpreis nach Rabatt
+        discount = total_price * (self.discount_percent / 100)
+        return total_price - discount
 
-# Zweiter Artikel zum halben Preis
 class SecondHalfPrice(Promotion):
-    def apply_promotion(self, product, quantity: int) -> float:
-        # Berechne den Gesamtpreis unter Berücksichtigung der Promotion
-        if quantity < 2:
-            return product.price * quantity
+    def __init__(self, name):
+        super().__init__(name)
 
-        discounted_price = (quantity // 2) * product.price * 1.5 + (quantity % 2) * product.price
-        return discounted_price
+    def apply_promotion(self, product, quantity):
+        if quantity >= 2:
+            total_price = product.price * quantity - product.price / 2  # Preis des zweiten Produkts halbiert
+        else:
+            total_price = product.price * quantity
+        return total_price
 
-# Kauf 2, erhalte 1 gratis
 class ThirdOneFree(Promotion):
-    def apply_promotion(self, product, quantity: int) -> float:
-        # Berechne den Preis für jedes Set von 3 Artikeln
-        discounted_price = (quantity // 3) * 2 * product.price + (quantity % 3) * product.price
-        return discounted_price
+    def __init__(self, name):
+        super().__init__(name)
+
+    def apply_promotion(self, product, quantity):
+        if quantity >= 3:
+            total_price = product.price * (quantity - (quantity // 3))  # Ein Produkt kostenlos für jedes dritte
+        else:
+            total_price = product.price * quantity
+        return total_price

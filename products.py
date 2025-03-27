@@ -1,75 +1,60 @@
-from promotions import Promotion, PercentDiscount, SecondHalfPrice, ThirdOneFree
-
 class Product:
-    def __init__(self, name, price, quantity):
-        if not name or price < 0 or quantity < 0:
+    def __init__(self, name, price, quantity=0, promotion=None):
+        if not name or price < 0 or (quantity is not None and quantity < 0):
             raise ValueError("Invalid input values")
         self.name = name
         self.price = price
-        self.quantity = quantity
-        self.active = False if quantity == 0 else True
-        self.promotion = None
+        self.quantity = quantity if quantity is not None else 0
+        self.active = self.quantity > 0
+        self.promotion = promotion
 
-    def get_quantity(self) -> int:
-        return self.quantity
-
-    def set_quantity(self, quantity):
-        self.quantity = quantity
-        if self.quantity == 0:
-            self.deactivate()
-
-    def is_active(self) -> bool:
+    def is_active(self):
         return self.active
 
-    def activate(self):
-        self.active = True
-
-    def deactivate(self):
-        self.active = False
+    def get_quantity(self):
+        return self.quantity
 
     def set_promotion(self, promotion):
-        self.promotion = promotion  # Setzt eine Promotion für das Produkt
+        self.promotion = promotion
 
     def get_promotion(self):
-        return self.promotion  # Gibt die aktuelle Promotion des Produkts zurück
+        return self.promotion.name if self.promotion else "None"
 
-    def show(self) -> str:
-        promo_text = f" | Promotion: {self.promotion.name}" if self.promotion else ""
-        return f"{self.name}, Price: {self.price}, Quantity: {self.quantity}"
+    def show(self):
+        promo_text = f", Promotion: {self.get_promotion()}" if self.promotion else ""
+        return f"{self.name}, Price: {self.price} (Non-Stocked)" if isinstance(self, NonStockedProduct) else f"{self.name}, Price: {self.price}, Quantity: {self.quantity}{promo_text}"
 
-    def buy(self, quantity) -> float:
-        if quantity > self.quantity:
-            raise ValueError("Not enough items available")
-
+    def buy(self, quantity):
+        if self.quantity < quantity:
+            raise ValueError("Not enough stock available.")
+        self.quantity -= quantity
+        self.active = self.quantity > 0
+        total_price = self.price * quantity
         if self.promotion:
             total_price = self.promotion.apply_promotion(self, quantity)
-        else:
-            total_price = self.price * quantity
-        self.set_quantity(self.quantity - quantity)
         return total_price
 
-class NonStockedProduct(Product):
-    def __init__(self, name, price):
-        super().__init__(name, price, 0)
 
-    def show(self) -> str:
+class NonStockedProduct(Product):
+    def __init__(self, name, price, promotion=None):
+        super().__init__(name, price, quantity=0, promotion=promotion)
+
+    def get_quantity(self):
+        return 0
+
+    def show(self):
         return f"{self.name}, Price: {self.price} (Non-Stocked)"
 
-    def buy(self, quantity) -> float:
-        # Nicht gelagerte Produkte können nicht gekauft werden
-        raise ValueError(f"{self.name} is not available for purchase.")
 
 class LimitedProduct(Product):
-    def __init__(self, name, price, quantity, maximum):
-        super().__init__(name, price, quantity)
+    def __init__(self, name, price, quantity, maximum, promotion=None):
+        super().__init__(name, price, quantity, promotion)
         self.maximum = maximum
 
-    def buy(self, quantity) -> float:
-        if quantity > self.maximum:
-            raise ValueError(f"Cannot buy more than {self.maximum} units per order")
-        if quantity > self.quantity:
-            raise ValueError(f"Not enough items available. Only {self.quantity} left.")
-        return super().buy(quantity)
-
-    def show(self) -> str:
+    def show(self):
         return f"{self.name}, Price: {self.price}, Quantity: {self.quantity}, Max allowed: {self.maximum}"
+
+    def buy(self, quantity):
+        if quantity > self.maximum:
+            raise ValueError(f"Cannot buy more than {self.maximum} of this product.")
+        return super().buy(quantity)
