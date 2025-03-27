@@ -34,7 +34,7 @@ def test_buy_more_than_available_quantity():
 def test_non_stocked_product():
     product = NonStockedProduct("Windows License", price=125)
     assert product.get_quantity() == 0
-    assert product.show() == "Windows License, Price: 125 (Non-Stocked)"
+    assert product.show() == "Windows License, Price: $125, Promotion: None (Non-Stocked)"
     with pytest.raises(ValueError):
         product.buy(1)
 
@@ -44,7 +44,7 @@ def test_limited_product():
     assert product.get_quantity() == 249  # Überprüfung, dass die Menge korrekt reduziert wurde
     with pytest.raises(ValueError):
         product.buy(2)
-    assert product.show() == "Shipping Fee, Price: 10, Quantity: 249, Max allowed: 1"
+    assert product.show() == "Shipping Fee, Price: $10, Quantity: 249, Max allowed: 1, Promotion: None"
 
 def test_percent_discount():
     product = Product("Test Product", price=100, quantity=10)
