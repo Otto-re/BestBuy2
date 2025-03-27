@@ -1,6 +1,7 @@
 import products
 import store
-
+import promotions
+1
 product_list = [
     products.Product("MacBook Air M2", price=1450, quantity=100),
     products.Product("Bose QuietComfort Earbuds", price=250, quantity=500),

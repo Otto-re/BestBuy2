@@ -1,5 +1,6 @@
 import pytest
 from products import Product, NonStockedProduct, LimitedProduct
+from promotions import PercentDiscount, SecondHalfPrice, ThirdOneFree
 
 def test_create_product():
     product = Product("MacBook Air M2", price=1450, quantity=100)
@@ -34,6 +35,8 @@ def test_non_stocked_product():
     product = NonStockedProduct("Windows License", price=125)
     assert product.get_quantity() == 0
     assert product.show() == "Windows License, Price: 125 (Non-Stocked)"
+    with pytest.raises(ValueError):
+        product.buy(1)
 
 def test_limited_product():
     product = LimitedProduct("Shipping Fee", price=10, quantity=250, maximum=1)
@@ -41,3 +44,25 @@ def test_limited_product():
     with pytest.raises(ValueError):
         product.buy(2)
     assert product.show() == "Shipping Fee, Price: 10, Quantity: 249, Max allowed: 1"
+
+def test_percent_discount():
+    product = Product("Test Product", price=100, quantity=10)
+    promo = PercentDiscount("20% off", percent=20)
+    product.set_promotion(promo)
+    # Kauf von 2 Artikeln: Normalpreis 200, 20% Rabatt = 40 Rabatt, Gesamt = 160
+    assert product.buy(2) == 160
+
+def test_second_half_price():
+    product = Product("Test Product", price=100, quantity=10)
+    promo = SecondHalfPrice("Second item half price")
+    product.set_promotion(promo)
+    # Kauf von 2 Artikeln: 1 x 100 + 1 x 50 = 150
+    assert product.buy(2) == 150
+
+def test_third_one_free():
+    product = Product("Test Product", price=100, quantity=10)
+    promo = ThirdOneFree("Buy 2 get 1 free")
+    product.set_promotion(promo)
+    # Kauf von 3 Artikeln: Preis = 2 x 100 = 200
+    assert product.buy(3) == 200
+
